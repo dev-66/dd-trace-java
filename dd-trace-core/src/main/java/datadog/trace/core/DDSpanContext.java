@@ -4,6 +4,9 @@ import static datadog.trace.api.cache.RadixTreeCache.HTTP_STATUSES;
 import static datadog.trace.api.sampling.PrioritySampling.UNSET;
 import static datadog.trace.api.sampling.PrioritySampling.USER_KEEP;
 
+import datadog.cws.erpc.Erpc;
+import datadog.cws.tls.CwsTls;
+import datadog.cws.tls.CwsTlsFactory;
 import datadog.trace.api.DDId;
 import datadog.trace.api.DDTags;
 import datadog.trace.api.Functions;
@@ -42,6 +45,9 @@ public class DDSpanContext implements AgentSpan.Context {
       DDCaches.newFixedSizeCache(256);
 
   private static final Map<String, String> EMPTY_BAGGAGE = Collections.emptyMap();
+
+  /** The Thread local storage used to sync span/trace with CWS */
+  private static CwsTls cwsTls = CwsTlsFactory.newCwsTls(4096);
 
   /** The collection of all span related to this one */
   private final PendingTrace trace;
@@ -356,6 +362,14 @@ public class DDSpanContext implements AgentSpan.Context {
   @Override
   public RequestContext getRequestContext() {
     return requestContext;
+  }
+
+  public CwsTls getCwsTls() {
+    return cwsTls;
+  }
+
+  private static void setCwsTls(CwsTls tls) {
+    cwsTls = tls;
   }
 
   public CoreTracer getTracer() {

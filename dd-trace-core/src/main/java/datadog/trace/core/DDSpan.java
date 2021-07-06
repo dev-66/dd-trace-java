@@ -35,6 +35,7 @@ public class DDSpan implements AgentSpan, CoreSpan<DDSpan> {
     final DDSpan span = new DDSpan(timestampMicro, context);
     log.debug("Started span: {}", span);
     context.getTrace().registerSpan(span);
+    context.getCwsTls().registerSpan(span.getSpanId(), span.getTraceId());
     return span;
   }
 
@@ -98,6 +99,7 @@ public class DDSpan implements AgentSpan, CoreSpan<DDSpan> {
     if (this.durationNano.compareAndSet(0, Math.max(1, durationNano))) {
       context.getTrace().onFinish(this);
       PendingTrace.PublishState publishState = context.getTrace().onPublish(this);
+      context.getCwsTls().registerSpan(context.getParentId(), context.getTraceId());
       log.debug("Finished span ({}): {}", publishState, this);
     } else {
       log.debug("Already finished: {}", this);

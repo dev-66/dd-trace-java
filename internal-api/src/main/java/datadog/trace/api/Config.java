@@ -5,6 +5,8 @@ import static datadog.trace.api.ConfigDefaults.DEFAULT_AGENT_TIMEOUT;
 import static datadog.trace.api.ConfigDefaults.DEFAULT_AGENT_WRITER_TYPE;
 import static datadog.trace.api.ConfigDefaults.DEFAULT_ANALYTICS_SAMPLE_RATE;
 import static datadog.trace.api.ConfigDefaults.DEFAULT_APPSEC_ENABLED;
+import static datadog.trace.api.ConfigDefaults.DEFAULT_CWS_ENABLED;
+import static datadog.trace.api.ConfigDefaults.DEFAULT_CWS_TLS_REFRESH;
 import static datadog.trace.api.ConfigDefaults.DEFAULT_DB_CLIENT_HOST_SPLIT_BY_INSTANCE;
 import static datadog.trace.api.ConfigDefaults.DEFAULT_DOGSTATSD_START_DELAY;
 import static datadog.trace.api.ConfigDefaults.DEFAULT_HEALTH_METRICS_ENABLED;
@@ -67,6 +69,8 @@ import static datadog.trace.api.DDTags.SERVICE_TAG;
 import static datadog.trace.api.IdGenerationStrategy.RANDOM;
 import static datadog.trace.api.Platform.isJavaVersionAtLeast;
 import static datadog.trace.api.config.AppSecConfig.APPSEC_ENABLED;
+import static datadog.trace.api.config.CwsConfig.CWS_ENABLED;
+import static datadog.trace.api.config.CwsConfig.CWS_TLS_REFRESH;
 import static datadog.trace.api.config.GeneralConfig.API_KEY;
 import static datadog.trace.api.config.GeneralConfig.API_KEY_FILE;
 import static datadog.trace.api.config.GeneralConfig.CONFIGURATION_FILE;
@@ -426,6 +430,9 @@ public class Config {
 
   private final Set<String> grpcIgnoredOutboundMethods;
   private final boolean grpcServerTrimPackageResource;
+
+  private final boolean cwsEnabled;
+  private final int cwsTlsRefresh;
 
   private String env;
   private String version;
@@ -854,6 +861,10 @@ public class Config {
     internalExitOnFailure = configProvider.getBoolean(INTERNAL_EXIT_ON_FAILURE, false);
 
     resolverUseLoadClassEnabled = configProvider.getBoolean(RESOLVER_USE_LOADCLASS, true);
+
+    cwsEnabled = configProvider.getBoolean(CWS_ENABLED, DEFAULT_CWS_ENABLED);
+    cwsTlsRefresh =
+      configProvider.getInteger(CWS_TLS_REFRESH, DEFAULT_CWS_TLS_REFRESH);
 
     // Setting this last because we have a few places where this can come from
     apiKey = tmpApiKey;
@@ -1316,6 +1327,14 @@ public class Config {
 
   public boolean isDebugEnabled() {
     return debugEnabled;
+  }
+
+  public boolean isCwsEnabled() {
+    return cwsEnabled;
+  }
+
+  public int getCwsTlsRefresh() {
+    return cwsTlsRefresh;
   }
 
   public String getConfigFile() {
@@ -2060,6 +2079,10 @@ public class Config {
         + grpcIgnoredOutboundMethods
         + ", configProvider="
         + configProvider
+        + ", cwsEnabled="
+        + cwsEnabled
+        + ", cwsTlsRefresh="
+        + cwsTlsRefresh
         + '}';
   }
 }

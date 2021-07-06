@@ -1,5 +1,6 @@
 package datadog.trace.core
 
+import datadog.cws.tls.CwsTls
 import datadog.trace.api.Checkpointer
 import datadog.trace.api.DDId
 import datadog.trace.api.DDTags
@@ -11,6 +12,7 @@ import datadog.trace.common.writer.ListWriter
 import datadog.trace.core.propagation.ExtractedContext
 import datadog.trace.core.propagation.TagContext
 import datadog.trace.core.test.DDCoreSpecification
+import datadog.trace.TestCwsTls
 
 import java.util.concurrent.TimeUnit
 
@@ -425,5 +427,40 @@ class DDSpanTest extends DDCoreSpecification {
     child.isEmittingCheckpoints() == true // flag is reflected in children
     child.@emittingCheckpoints == null // but no value is stored in the field
     child.getTag(DDSpan.CHECKPOINTED_TAG) == null // child span does not get the tag set
+  }
+
+  def "register span to CWS"() {
+    setup:
+    DDSpanContext context =
+      new DDSpanContext(
+      DDId.from(123),
+      DDId.from(456),
+      DDId.from(789),
+      null,
+      "fakeService",
+      "fakeOperation",
+      "fakeResource",
+      PrioritySampling.UNSET,
+      null,
+      Collections.<String, String> emptyMap(),
+      false,
+      "fakeType",
+      0,
+      tracer.pendingTraceFactory.create(DDId.ONE),
+      null)
+
+    context.setCwsTls(new TestCwsTls())
+
+    when:
+    DDSpan span = DDSpan.create(1, context)
+    then:
+    context.getCwsTls().getTraceId() == DDId.from(123)
+    context.getCwsTls().getSpanId() == DDId.from(456)
+
+    when:
+    span.finish()
+    then:
+    context.getCwsTls().getTraceId() == DDId.from(123)
+    context.getCwsTls().getSpanId() == DDId.from(789)
   }
 }
