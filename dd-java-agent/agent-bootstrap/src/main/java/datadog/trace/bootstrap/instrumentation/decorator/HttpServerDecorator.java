@@ -107,6 +107,7 @@ public abstract class HttpServerDecorator<REQUEST, CONNECTION, RESPONSE> extends
           String path = encoded ? url.rawPath() : url.path();
 
           span.setTag(Tags.HTTP_URL, URIUtils.buildURL(url.scheme(), url.host(), url.port(), path));
+          span.setTag(Tags.HTTP_HOSTNAME, url.host());
 
           if (config.isHttpServerTagQueryString()) {
             String query =
