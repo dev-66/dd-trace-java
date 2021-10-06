@@ -163,4 +163,18 @@ class IntervalValidatorTest extends Specification {
     tracker.resumeSpan(2L)
     tracker.endSpan(2L)
   }
+
+  def "weird sequence"() {
+    expect:
+    tracker.resumeSpan(1L)
+    tracker.endTask(1L)
+    tracker.resumeSpan(1L)
+    tracker.startSpan(3L)
+    tracker.resumeSpan(1L)
+    tracker.suspendSpan(1L)
+    tracker.resumeSpan(1L)
+    tracker.suspendSpan(1L)
+    tracker.suspendSpan(1L)
+    tracker.endSpan(3L)
+  }
 }
